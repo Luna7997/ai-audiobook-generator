@@ -1,0 +1,251 @@
+[
+    {
+      "name": "Anna Kim",
+      "gender": "Female",
+      "age_group": "Young",
+      "id": "uyVNoMrnUku1dZyVEXwD",
+      "feature": "밝은, 깔끔한, 훈훈한"
+    },
+    {
+      "name": "Min ho",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "U1cJYS4EdbaHmfR7YzHd",
+      "feature": "따뜻한, 저음, 무뚝뚝한, 부드러운, 성숙한"
+    },
+    {
+      "name": "HYUK",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "ZJCNdZEjYwkOElxugmW2",
+      "feature": "세련된, 저음, 남성저인"
+    },
+    {
+      "name": "Hyun Bin",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "s07IwTCOrCDCaETjUVjx",
+      "feature": "저음, 차분한, 어두운, 성숙한"
+    },
+    {
+      "name": "Jieong",
+      "gender": "Female",
+      "age_group": "Young",
+      "id": "DMkRitQrfpiddSQT5adl",
+      "feature": "귀여운, 따뜻한, 세련된, 가벼운"
+    },
+    {
+      "name": "Minjoon",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "nbrxrAz3eYm9NgojrmFK",
+      "feature": "자신감있는, 활발한, 외향적인"
+    },
+    {
+      "name": "Do Hyeon",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "FQ3MuLxZh0jHcZmA5vW1",
+      "feature": "저음, 어두운, 깊은, 진지한"
+    },
+    {
+      "name": "Wonmoon",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "H8ObVvroE5JXeeUSJakg",
+      "feature": "가벼운, 부드러운, 느긋한"
+    },
+    {
+      "name": "KKC RADIO",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "v1jVu1Ky28piIPEJqRrm",
+      "feature": "저음, 전문적인, 감정없는, 진지한, 어두운"
+    },
+    {
+      "name": "Jennie",
+      "gender": "Female",
+      "age_group": "Young",
+      "id": "z6Kj0hecH20CdetSElRT",
+      "feature": "세련된, 부드러운, 따뜻한"
+    },
+    {
+      "name": "JiYoung",
+      "gender": "Female",
+      "age_group": "Young",
+      "id": "AW5wrnG1jVizOYY7R1Oo",
+      "feature": "따뜻한, 명확한, 부드러운, 감성적인, 친근한"
+    },
+    {
+      "name": "KKC",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "1W00IGEmNmwmsDeYy7ag",
+      "feature": "밝은, 저음, 자신감 있는, 활기찬"
+    },
+    {
+      "name": "Jadong Ahn",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "ZcZcEsYxXAIc3nNSev1H",
+      "feature": "감정없는, 진지한, 차분한, 중립적인"
+    },
+    {
+      "name": "Grandfather Namchun",
+      "gender": "Male",
+      "age_group": "Old",
+      "id": "5ON5Fnz24cnOozEQfGAm"
+    },
+    {
+      "name": "Deok pal",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "wzMVIc8FAFmgMxFpN0uM",
+      "feature": "뚱뚱한, 힘있는, 명확한, 밝은"
+    },
+    {
+      "name": "Yuna",
+      "gender": "Female",
+      "age_group": "Young",
+      "id": "xi3rF0t7dg7uN2M0WUhr",
+      "feature": "부드러운, 활기찬, 밝은, 가벼운, 귀여운"
+    },
+    {
+      "name": "Bin",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "jB1Cifc2UQbq1gR3wnb0",
+      "feature": "따뜻한, 성숙한, 부드러운, 다정한"
+    },
+    {
+      "name": "Jung",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "aurnUodFzOtofecLd3T1",
+      "feature": "차분한, 감정없는"
+    },
+    {
+      "name": "Chulsu",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "w5eZjob1kXfLB9HjpFqU"
+    },
+    {
+      "name": "Hyuk",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "WqVy7827vjE2r3jWvbnP",
+      "feature": "부드러운, 잔잔한, 차분한, 저음"
+    },
+    {
+      "name": "June",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "3MTvEr8xCMCC2mL9ujrI",
+      "feature": "중립적인, 감정없는, 깔끔한, 명확한"
+    },
+    {
+      "name": "Kyungduk Ko",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "2gbExjiWDnG1DMGr81Bx",
+      "feature": "무게있는, 자신감있는, 명확한"
+    },
+    {
+      "name": "KKc",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "gJSDQIpSQ56NBGhorBfg",
+      "feature": "밝은, 저음, 자신감 있는, 활기찬"
+    },
+    {
+      "name": "Taemin",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "Ir7oQcBXWiq4oFGROCfj"
+    },
+    {
+      "name": "Man Bo",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "ZZ4xhVcc83kZBfNIlIIz",
+      "feature": "밝은, 가벼운, 높은 목소리, 익살스럽고 감칠맛 나는"
+    },
+    {
+      "name": "Jang ho",
+      "gender": "Male",
+      "age_group": "Old",
+      "id": "UmYoqGlufKxhJ6NCx5Mv"
+    },
+    {
+      "name": "Deok su",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "IAETYMYM3nJvjnlkVTKI",
+      "feature": "뚱뚱한, 밝은, 귀여운"
+    },
+    {
+      "name": "Bong pal",
+      "gender": "Male",
+      "age_group": "Old",
+      "id": "PLfpgtLkFW07fDYbUiRJ",
+      "feature": "활기찬, 친근한, 웃긴, 가벼운, 장년, 밝은"
+    },
+    {
+      "name": "Jina",
+      "gender": "Female",
+      "age_group": "Middle age",
+      "id": "sSoVF9lUgTGJz0Xz3J9y",
+      "feature": "작은, 소심한, 가벼운"
+    },
+    {
+      "name": "YohanKoo",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "4JJwo477JUAx3HV0T7n7",
+      "feature": "차분한, 성숙한, 명확한, 지적인, 자신감, 힘있는"
+    },
+    {
+      "name": "강수",
+      "gender": "Male",
+      "age_group": "Middle age",
+      "id": "TRO4gatqxbbwLXHLDLSk",
+      "feature": "사투리, 친이 가는, 힘있는, 강렬한, 씩씩한"
+    },
+    {
+      "name": "DeckYuk",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "5XgfKMHL4qnyg2mabE5t",
+      "feature": "뚱뚱한, 힘있는, 명확한, 밝은"
+    },
+    {
+      "name": "TeddyNote",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "RU7aSi6lT4uQBXMLgDxK",
+      "feature": "차분한, 힘있는, 감성적, 성숙한"
+    },
+    {
+      "name": "JoonPark",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "7Nah3cbXKVmGX7gQUuwz",
+      "feature": "자신감있는, 밝은, 가벼운, 훈훈한"
+    },
+    {
+      "name": "Sam hottman",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "WzMnDIgiICcj1oXbUBO0",
+      "feature": "전문적인, 가벼운, 힘있는"
+    },
+    {
+      "name": "KKC - Guided Meditation & Narration",
+      "gender": "Male",
+      "age_group": "Young",
+      "id": "gJSDQIpSQ56NBGhorBfg",
+      "feature": "차분한, 편안한, 감정없는"
+    }
+  ]
+  

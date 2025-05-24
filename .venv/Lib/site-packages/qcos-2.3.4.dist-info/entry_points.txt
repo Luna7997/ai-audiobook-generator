@@ -1,0 +1,3 @@
+[console_scripts]
+qcos=qcos.cli:main
+
