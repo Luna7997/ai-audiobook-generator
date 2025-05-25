@@ -1,3 +1,16 @@
 {
-    
+    "f423d40c-3428-47ed-8b8e-0828bfde5365": {
+        "original_filename": "카페에서.txt",
+        "saved_filename": "f423d40c-3428-47ed-8b8e-0828bfde5365.txt",
+        "upload_timestamp": "2025-05-24T20:45:51.296503",
+        "size_bytes": 793,
+        "char_count": 340,
+        "character_analysis_file": "f423d40c-3428-47ed-8b8e-0828bfde5365_characters.json",
+        "character_analysis_timestamp": "2025-05-24T20:45:53.327883",
+        "structure_analysis_file": "f423d40c-3428-47ed-8b8e-0828bfde5365_structure.json",
+        "structure_analysis_timestamp": "2025-05-24T20:46:02.769039",
+        "matching_file": "f423d40c-3428-47ed-8b8e-0828bfde5365_matching.json",
+        "matching_timestamp": "2025-05-24T20:46:04.094686",
+        "matching_path": "C:\\Users\\admin\\OneDrive\\Desktop\\RnE\\audiobook_project\\backend\\app_data\\novels_matched"
+    }
 }

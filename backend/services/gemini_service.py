@@ -13,50 +13,24 @@ API_KEY = os.environ.get("GOOGLE_API_KEY")
 if API_KEY:
     genai.configure(api_key=API_KEY)
 
-# 매칭 결과 저장 경로 설정
+# 기본 경로 및 파일 경로 설정
 BASE_PATH = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MATCHING_RESULT_PATH = BASE_PATH / 'app_data' / 'matching_result'
+CHARACTER_ANALYSIS_PATH = BASE_PATH / 'app_data' / 'character_analysis'
+NOVELS_PROCESSED_PATH = BASE_PATH / 'app_data' / 'novels_processed'
+NOVELS_MATCHED_PATH = BASE_PATH / 'app_data' / 'novels_matched'
 
-# 매칭 결과 폴더 확인 및 생성
-if not os.path.exists(MATCHING_RESULT_PATH):
-    os.makedirs(MATCHING_RESULT_PATH)
-    logging.info(f"매칭 결과 폴더 생성: {MATCHING_RESULT_PATH}")
+# 폴더가 없는 경우 생성
+if not os.path.exists(CHARACTER_ANALYSIS_PATH):
+    os.makedirs(CHARACTER_ANALYSIS_PATH)
+    logging.info(f"캐릭터 분석 폴더 생성: {CHARACTER_ANALYSIS_PATH}")
 
-# --- 일반 텍스트 생성 함수 ---
-def generate_text(prompt: str, model_name: str = "gemini-2.0-flash", max_output_tokens: int = 500, temperature: float = 0.7) -> str:
-    """
-    Gemini API를 사용하여 일반 텍스트를 생성합니다.
+if not os.path.exists(NOVELS_PROCESSED_PATH):
+    os.makedirs(NOVELS_PROCESSED_PATH)
+    logging.info(f"소설 처리 폴더 생성: {NOVELS_PROCESSED_PATH}")
 
-    Args:
-        prompt (str): 모델에 전달할 프롬프트 텍스트입니다.
-        model_name (str, optional): 사용할 모델의 이름입니다. Defaults to "gemini-2.0-flash".
-        max_output_tokens (int, optional): 생성할 최대 토큰 수입니다. Defaults to 500.
-        temperature (float, optional): 생성 시 샘플링 온도로, 0과 1 사이의 값입니다. Defaults to 0.7.
-
-    Returns:
-        str: 생성된 텍스트입니다.
-
-    Raises:
-        Exception: API 호출 또는 기타 오류 발생 시.
-    """
-    if not API_KEY:
-        return "오류: GEMINI_API_KEY가 설정되지 않았습니다."
-        
-    try:
-        model = genai.GenerativeModel(model_name)
-        config = GenerationConfig(
-            max_output_tokens=max_output_tokens,
-            temperature=0.7
-        )
-        response = model.generate_content(
-            contents=[prompt], # 콘텐츠는 항상 리스트 형태로 전달
-            generation_config=config
-        )
-        return response.text
-    except Exception as e:
-        print(f"텍스트 생성 중 오류 발생: {e}")
-        # 프론트엔드에서 오류를 적절히 처리할 수 있도록 예외를 다시 발생시키거나 오류 메시지를 반환합니다.
-        raise
+if not os.path.exists(NOVELS_MATCHED_PATH):
+    os.makedirs(NOVELS_MATCHED_PATH)
+    logging.info(f"매칭된 소설 폴더 생성: {NOVELS_MATCHED_PATH}")
 
 # --- 소설 등장인물 분석 지시사항 ---
 SYSTEM_PROMPT_CHARACTER_EXTRACTION = """# 소설 등장인물 분석 지시사항
@@ -429,7 +403,7 @@ CRITICAL: 매칭 결과를 반드시 JSON 형식으로만 출력하세요. 추�
 
 def save_matching_result(character_voice_map, voice_actors, file_id):
     """
-    매칭 결과를 지정된 경로에 JSON 파일로 저장합니다.
+    매칭 결과를 novels_matched 폴더에 JSON 파일로 저장합니다.
     
     Args:
         character_voice_map (dict): 등장인물 이름을 키로, 성우 ID를 값으로 하는 매핑 딕셔너리
@@ -442,7 +416,7 @@ def save_matching_result(character_voice_map, voice_actors, file_id):
     try:
         # 파일 이름을 소설 ID로 지정
         filename = f"{file_id}_matching.json"
-        file_path = MATCHING_RESULT_PATH / filename
+        file_path = NOVELS_MATCHED_PATH / filename
         
         # 성우 ID를 키로 가진 사전 생성 (빠른 참조용)
         voice_actor_dict = {actor['id']: actor for actor in voice_actors}

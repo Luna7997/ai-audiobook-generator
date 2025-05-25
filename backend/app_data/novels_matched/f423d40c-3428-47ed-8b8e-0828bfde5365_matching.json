@@ -1,0 +1,126 @@
+{
+  "character_voice_map": {
+    "지수": "DMkRitQrfpiddSQT5adl",
+    "민호": "Ir7oQcBXWiq4oFGROCfj",
+    "Narrator": "DMkRitQrfpiddSQT5adl"
+  },
+  "story_items": [
+    {
+      "order": 1,
+      "type": "narration",
+      "speaker": "Narrator",
+      "text": "창가 자리에 앉아 노트북을 두드리던 지수가 고개를 들었다.",
+      "emotion": "중립",
+      "tone": "차분함",
+      "expression_guide": "평온하고 객관적인 어조로, 배경을 설명하듯이 읽습니다. '두드리던' 부분에서 손가락으로 가볍게 치는 소리를 연상시키는 억양을 살짝 추가합니다."
+    },
+    {
+      "order": 2,
+      "type": "narration",
+      "speaker": "Narrator",
+      "text": "익숙한 목소리가 들려왔기 때문이다.",
+      "emotion": "중립",
+      "tone": "호기심",
+      "expression_guide": "약간의 호기심을 담아, 다음 내용에 대한 기대감을 유발하는 어조로 읽습니다. '익숙한'에 살짝 강조를 둡니다."
+    },
+    {
+      "order": 3,
+      "type": "dialogue",
+      "speaker": "민호",
+      "text": "아메리카노 한 잔 주세요.",
+      "emotion": "중립",
+      "tone": "정중함",
+      "expression_guide": "평범하고 정중한 어조로, 카페에서 주문하는 상황을 자연스럽게 표현합니다. 목소리 톤은 약간 높고, 끝맺음은 부드럽게 처리합니다."
+    },
+    {
+      "order": 4,
+      "type": "narration",
+      "speaker": "Narrator",
+      "text": "바리스타에게 주문하는 사람은 대학 동기인 민호였다.",
+      "emotion": "중립",
+      "tone": "객관적",
+      "expression_guide": "담담하게 사실을 전달하는 어조로, 특별한 감정 없이 정보를 제공합니다. '대학 동기인 민호였다'를 통해 민호가 누구인지 명확히 설명합니다."
+    },
+    {
+      "order": 5,
+      "type": "dialogue",
+      "speaker": "지수",
+      "text": "민호야, 여기!",
+      "emotion": "기쁨",
+      "tone": "반가움",
+      "expression_guide": "밝고 활기찬 목소리로, 민호를 발견한 기쁨을 표현합니다. '민호야'를 부를 때 약간 높고 명랑한 톤을 사용하고, '여기!'는 짧고 긍정적으로 외칩니다."
+    },
+    {
+      "order": 6,
+      "type": "narration",
+      "speaker": "Narrator",
+      "text": "민호가 돌아보더니 환한 웃음을 지었다.",
+      "emotion": "기쁨",
+      "tone": "긍정적",
+      "expression_guide": "미소를 짓는 모습이 연상되도록, 밝고 긍정적인 어조로 읽습니다. '환한 웃음'에 약간의 강조를 두어 시각적인 이미지를 강화합니다."
+    },
+    {
+      "order": 7,
+      "type": "dialogue",
+      "speaker": "민호",
+      "text": "어? 지수야! 여기서 뭐해?",
+      "emotion": "놀람",
+      "tone": "반가움",
+      "expression_guide": "'어?'는 짧고 놀란 듯한 감탄사로 처리하고, '지수야!'는 반가운 감정을 담아 외칩니다. '여기서 뭐해?'는 궁금증을 나타내는 톤으로, 약간 높게 시작해서 끝을 살짝 올려 질문의 느낌을 줍니다."
+    },
+    {
+      "order": 8,
+      "type": "dialogue",
+      "speaker": "지수",
+      "text": "과제하고 있어. 너도 앉아.",
+      "emotion": "중립",
+      "tone": "친근함",
+      "expression_guide": "편안하고 친근한 어조로, 자연스럽게 대화를 이어갑니다. '과제하고 있어'는 평범하게 말하고, '너도 앉아'는 약간의 권유를 담아 부드럽게 말합니다."
+    },
+    {
+      "order": 9,
+      "type": "narration",
+      "speaker": "Narrator",
+      "text": "민호는 커피를 받아들고 지수 앞자리에 앉았다.",
+      "emotion": "중립",
+      "tone": "담담함",
+      "expression_guide": "객관적인 시점에서 상황을 설명하는 어조로, 특별한 감정 없이 사실을 전달합니다. 문장 전체를 균일한 톤으로 읽습니다."
+    },
+    {
+      "order": 10,
+      "type": "narration",
+      "speaker": "Narrator",
+      "text": "그의 얼굴에는 피곤함이 역력했다.",
+      "emotion": "슬픔",
+      "tone": "걱정스러움",
+      "expression_guide": "민호의 상태에 대한 안타까움을 담아, 차분하지만 걱정스러운 어조로 읽습니다. '피곤함이 역력했다'에 약간의 강조를 두어 민호의 힘든 상황을 부각합니다."
+    },
+    {
+      "order": 11,
+      "type": "dialogue",
+      "speaker": "지수",
+      "text": "요즘 어떻게 지내? 얼굴이 좀 안 좋아 보이는데.",
+      "emotion": "걱정",
+      "tone": "염려됨",
+      "expression_guide": "걱정하는 마음을 담아 부드럽고 조심스러운 어조로 질문합니다. '어떻게 지내?'는 부드럽게 시작하고, '얼굴이 좀 안 좋아 보이는데'는 걱정스러운 감정을 더해 천천히 말합니다."
+    },
+    {
+      "order": 12,
+      "type": "dialogue",
+      "speaker": "민호",
+      "text": "아, 알바 때문에 잠을 못 잤어. 야간 근무가 생각보다 힘들더라.",
+      "emotion": "슬픔",
+      "tone": "지침",
+      "expression_guide": "'아'는 가볍게 한숨 쉬는 소리를 내며 시작하고, 전체적으로 힘없는 목소리로 말합니다. '야간 근무가 생각보다 힘들더라'에서 '힘들더라'를 강조하며 어려움을 토로하는 느낌을 줍니다."
+    },
+    {
+      "order": 13,
+      "type": "narration",
+      "speaker": "Narrator",
+      "text": "지수가 걱정스러운 표정으로 그를 바라봤다.",
+      "emotion": "걱정",
+      "tone": "안타까움",
+      "expression_guide": "민호에 대한 걱정과 안타까움을 담아, 차분하고 조용한 어조로 읽습니다. '걱정스러운'에 감정을 실어 지수의 심정을 표현합니다."
+    }
+  ]
+}

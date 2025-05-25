@@ -19,7 +19,6 @@
 - **프론트엔드**: React (Vite)
 - **백엔드**: Flask (Python)
 - **AI API**: Google Gemini 2.5, ElevenLabs
-- **데이터베이스**: MongoDB
 
 ## 프로젝트 진행 상황
 

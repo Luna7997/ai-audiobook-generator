@@ -11,8 +11,30 @@ const apiClient = axios.create({
   },
 });
 
+// 에러 헬퍼 함수 - 응답에서 에러 메시지와 코드 추출
+const extractErrorInfo = (error) => {
+  // 서버 응답이 있는 경우
+  if (error.response && error.response.data) {
+    const { error: errorMessage, error_code, message } = error.response.data;
+    return {
+      message: errorMessage || message || error.message || '알 수 없는 오류가 발생했습니다.',
+      code: error_code || null,
+      status: error.response.status,
+      originalError: error
+    };
+  }
+  
+  // 서버 응답이 없는 경우 (네트워크 오류 등)
+  return {
+    message: error.message || '서버에 연결할 수 없습니다.',
+    code: 'NETWORK_ERROR',
+    status: 0,
+    originalError: error
+  };
+};
+
 // API 요청 함수들
-export const apiService = {
+const apiService = {
   // 서버 상태 확인
   checkHealth: async () => {
     try {
@@ -20,25 +42,11 @@ export const apiService = {
       return response.data;
     } catch (error) {
       console.error('서버 상태 확인 실패:', error);
-      throw error;
-    }
-  },
-  
-  // Gemini API로 텍스트 생성
-  generateText: async (prompt, systemInstruction = null) => {
-    try {
-      const response = await apiClient.post('/gemini/generate', {
-        prompt,
-        system_instruction: systemInstruction
-      });
-      return response.data;
-    } catch (error) {
-      console.error('텍스트 생성 요청 실패:', error);
-      throw error;
+      throw extractErrorInfo(error);
     }
   },
 
-  // New function for file upload
+  // 파일 업로드 함수
   uploadFile: async (file, onUploadProgress) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -53,7 +61,7 @@ export const apiService = {
       return response; // Return the full response object
     } catch (error) {
       console.error('Error uploading file:', error);
-      throw error;
+      throw extractErrorInfo(error);
     }
   },
 
@@ -75,42 +83,38 @@ export const apiService = {
       return response.data;
     } catch (error) {
       console.error('등장인물 추출 요청 실패:', error);
-      throw error;
+      throw extractErrorInfo(error);
     }
   },
 
   // --- 새로운 API 호출 함수들 ---
-  analyzeCharactersById: async (fileId) => {
+  analyzeCharacters: async (fileId) => {
     try {
       const response = await apiClient.post(`/analyze/characters/${fileId}`);
       return response.data; // 성공 시 { message, file_id, analysis_file, model_info }
     } catch (error) {
       console.error(`Error analyzing characters for fileId ${fileId}:`, error);
-      throw error; // 에러 객체에는 response.data.error 등이 포함될 수 있음
+      throw extractErrorInfo(error); // 에러 객체에는 response.data.error 등이 포함될 수 있음
     }
   },
 
-  analyzeNovelStructureById: async (fileId) => {
+  analyzeNovelStructure: async (fileId) => {
     try {
       const response = await apiClient.post(`/analyze/structure/${fileId}`);
       return response.data; // 성공 시 { message, file_id, analysis_file, model_info }
     } catch (error) {
       console.error(`Error analyzing novel structure for fileId ${fileId}:`, error);
-      throw error;
+      throw extractErrorInfo(error);
     }
   },
-  // --- --- ---
 
-  // --- 인물-성우 매칭 관련 함수 추가 ---
-  
-  // 사용 가능한 성우 목록 조회
   getVoiceActors: async () => {
     try {
       const response = await apiClient.get('/voice_actors');
       return response.data;
     } catch (error) {
       console.error('성우 목록 조회 실패:', error);
-      throw error;
+      throw extractErrorInfo(error);
     }
   },
   
@@ -121,7 +125,7 @@ export const apiService = {
       return response.data;
     } catch (error) {
       console.error(`등장인물-성우 매칭 실패 (fileId ${fileId}):`, error);
-      throw error;
+      throw extractErrorInfo(error);
     }
   },
   
@@ -132,8 +136,68 @@ export const apiService = {
       return response.data;
     } catch (error) {
       console.error(`등장인물-성우 매칭 결과 조회 실패 (fileId ${fileId}):`, error);
-      throw error;
+      throw extractErrorInfo(error);
     }
+  },
+
+  // 모든 처리된 텍스트의 메타데이터 조회
+  getAllMetadata: async () => {
+    try {
+      const response = await apiClient.get('/metadata');
+      return response.data;
+    } catch (error) {
+      console.error('모든 메타데이터 조회 실패:', error);
+      throw extractErrorInfo(error);
+    }
+  },
+
+  // 소설 파일 삭제
+  deleteNovel: async (fileId) => {
+    try {
+      const response = await apiClient.delete(`/processed_texts/${fileId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`소설 파일 삭제 실패 (fileId ${fileId}):`, error);
+      throw extractErrorInfo(error);
+    }
+  },
+
+  // ElevenLabs 음성 목록 가져오기
+  getElevenLabsVoices: async () => {
+    try {
+      const response = await apiClient.get('/elevenlabs/voices');
+      return response.data;
+    } catch (error) {
+      console.error('ElevenLabs 음성 목록 가져오기 실패:', error);
+      throw extractErrorInfo(error);
+    }
+  },
+
+  // 오디오북 생성 요청
+  generateAudiobook: async (fileId, options = {}) => {
+    try {
+      const response = await apiClient.post(`/audiobook/generate/${fileId}`, options);
+      return response.data;
+    } catch (error) {
+      console.error(`오디오북 생성 요청 실패 (fileId: ${fileId}):`, error);
+      throw extractErrorInfo(error);
+    }
+  },
+
+  // 오디오북 생성 상태 확인
+  getAudiobookStatus: async (fileId) => {
+    try {
+      const response = await apiClient.get(`/audiobook/status/${fileId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`오디오북 상태 확인 실패 (fileId: ${fileId}):`, error);
+      throw extractErrorInfo(error);
+    }
+  },
+
+  // 오디오 파일 URL 가져오기
+  getAudioFileUrl: (fileId, segmentId) => {
+    return `${apiClient.defaults.baseURL}/audiobook/files/${fileId}/${segmentId}`;
   }
 };
 

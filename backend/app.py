@@ -2,15 +2,18 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-# import google.generativeai as genai # gemini_service.py에서 처리하므로 app.py에서 직접 임포트 불필요
 import uuid
 import json
 
 # 서비스 모듈 가져오기
-from services.gemini_service import generate_text, extract_characters_from_text, analyze_novel_structure
-from services.text_storage_service import save_processed_text, get_processed_text_path, get_metadata, save_character_analysis, save_novel_structure_analysis
+from services.gemini_service import extract_characters_from_text, analyze_novel_structure
+from services.text_storage_service import save_processed_text, get_processed_text_path, get_metadata, save_metadata, save_character_analysis, save_novel_structure_analysis
+from services.text_storage_service import BASE_STORAGE_PATH, NOVELS_ORIGINAL_FOLDER, CHARACTER_ANALYSIS_FOLDER, NOVELS_PROCESSED_FOLDER, METADATA_FILE
 # 매칭 서비스 모듈 가져오기 (voice_actor_service 기능 포함)
 from services.matching_service import match_characters_with_voices, load_matching_result, load_voice_actors
+from services.matching_service import NOVELS_MATCHED_PATH, BASE_PATH
+# ElevenLabs 서비스 모듈 가져오기
+from services.elevenlabs_service import get_available_voices, generate_audiobook_segment, generate_complete_audiobook, check_generation_status, AUDIO_OUTPUT_FOLDER, ELEVENLABS_API_KEY, check_api_key
 
 # 환경 변수 로드
 load_dotenv()
@@ -28,17 +31,11 @@ CORS(app, resources={
 })
 
 # 파일 업로드 설정
-# UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads') # 주석 처리 또는 삭제
-# PROCESSED_TEXTS_FOLDER는 text_storage_service 내부에서 BASE_STORAGE_PATH로 관리됨
 ALLOWED_EXTENSIONS = {'txt'}
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB
 
-# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER # 주석 처리 또는 삭제
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
-# uploads 폴더가 없으면 생성 -> text_storage_service.py에서 app_data 및 하위 폴더 생성 로직으로 대체됨
-# if not os.path.exists(UPLOAD_FOLDER):
-#     os.makedirs(UPLOAD_FOLDER)
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -55,7 +52,6 @@ def root():
         'version': '1.0.0',
         'endpoints': {
             '/api/health': 'Check server status',
-            '/api/gemini/generate': 'Generate text using Gemini API',
             '/api/extract_characters': 'Extract character information from novel text using Gemini API',
             '/api/upload/txt': 'Upload a TXT novel file',
             '/api/processed_texts/<file_id>': 'Get a specific processed text file',
@@ -80,38 +76,6 @@ def health_check():
             'google': 'configured' if gemini_api_key_present else 'missing'
         }
     })
-
-# --- Gemini API 엔드포인트 --- 
-
-@app.route('/api/gemini/generate', methods=['POST'])
-def gemini_generate_route():
-    """
-    Gemini API로 텍스트 생성 엔드포인트 (gemini_service.py 사용)
-    """
-    data = request.get_json()
-    if not data or 'prompt' not in data:
-        return jsonify({"error": "Prompt is required"}), 400
-    
-    prompt = data['prompt']
-    # system_instruction = data.get('system_instruction', None) # 이 라인은 더 이상 직접 사용되지 않음
-    
-    try:
-        # gemini_service.py의 함수 호출 (system_instruction 인자 제거)
-        generated_text_content = generate_text(prompt)
-        
-        # gemini_service.generate_text는 성공 시 문자열을 반환, 
-        # API 키가 없으면 "오류: ..." 문자열을 반환, 그 외 API 오류 시 예외 발생.
-        if generated_text_content.startswith("오류:"):
-            app.logger.error(f"Gemini text generation failed due to service warning: {generated_text_content}")
-            return jsonify({"error": generated_text_content}), 500 # 또는 400 Bad Request 등 상황에 맞게
-        else:
-            # 성공적으로 텍스트가 생성된 경우
-            # 모델 정보는 현재 generate_text에서 반환하지 않으므로, 필요하다면 gemini_service 수정 필요
-            return jsonify({"generated_text": generated_text_content, "model": "gemini-2.0-flash"}) # 모델명은 예시
-    except Exception as e:
-        # gemini_service.py에서 발생한 예외를 여기서 처리
-        app.logger.error(f"Gemini text generation failed: {str(e)}")
-        return jsonify({"error": f"Failed to generate text using Gemini: {str(e)}"}), 500
 
 @app.route('/api/extract_characters', methods=['POST'])
 def extract_characters_route():
@@ -316,8 +280,6 @@ def analyze_structure_route(file_id):
         app.logger.error(f"Unexpected error during novel structure analysis for {file_id}: {str(e)}")
         return jsonify({"error": f"Unexpected error during novel structure analysis: {str(e)}"}), 500
 
-# --- 새로운 API 엔드포인트: 인물-성우 매칭 ---
-
 @app.route('/api/match/characters_voices/<file_id>', methods=['POST'])
 def match_characters_voices_route(file_id):
     """
@@ -356,7 +318,6 @@ def match_characters_voices_route(file_id):
         "character_voice_map": match_result.get("character_voice_map")
     }), 200
 
-
 @app.route('/api/match/characters_voices/<file_id>', methods=['GET'])
 def get_character_voice_mapping_route(file_id):
     """
@@ -373,9 +334,6 @@ def get_character_voice_mapping_route(file_id):
     
     # 성공 응답
     return jsonify(match_result.get("data")), 200
-
-
-# --- 추가: 사용 가능한 성우 목록 조회 API ---
 
 @app.route('/api/voice_actors', methods=['GET'])
 def get_voice_actors_route():
@@ -399,21 +357,86 @@ def get_voice_actors_route():
         "voice_actors": voice_actors
     }), 200
 
-# --- Processed Text & Metadata Endpoints ---
 @app.route('/api/processed_texts/<file_id>', methods=['GET'])
 def get_single_processed_text(file_id):
-    filepath = get_processed_text_path(file_id)
-    if filepath and os.path.exists(filepath):
-        # 보안을 위해 실제 파일 시스템 경로 대신 파일 스트림을 직접 반환하거나, 
-        # 여기서는 내용을 읽어서 JSON으로 반환 (대용량 파일 주의)
-        # return send_from_directory(os.path.dirname(filepath), os.path.basename(filepath))
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return jsonify({"file_id": file_id, "content": content})
-        except Exception as e:
-            return jsonify({"error": f"Could not read file: {str(e)}"}), 500
-    return jsonify({"error": "Processed text file not found"}), 404
+    text_path = get_processed_text_path(file_id)
+    if not text_path or not os.path.exists(text_path):
+        return jsonify({"error": f"Processed text file with id '{file_id}' not found."}), 404
+    
+    return send_from_directory(NOVELS_ORIGINAL_FOLDER, os.path.basename(text_path))
+
+@app.route('/api/processed_texts/<file_id>', methods=['DELETE'])
+def delete_processed_text(file_id):
+    """
+    지정된 file_id의 소설 파일 및 관련 메타데이터를 삭제합니다.
+    모든 관련 폴더(app_data 내부)에서 해당 파일을 삭제합니다.
+    """
+    app.logger.info(f"Delete request for file_id: {file_id}")
+    
+    # 메타데이터에서 파일 정보 확인
+    metadata = get_metadata()
+    if file_id not in metadata:
+        app.logger.error(f"File ID {file_id} not found in metadata")
+        return jsonify({"error": f"File with id '{file_id}' not found."}), 404
+    
+    file_metadata = metadata[file_id]
+    
+    try:
+        # 1. 원본 소설 파일 삭제
+        saved_filename = file_metadata.get('saved_filename')
+        if saved_filename:
+            original_filepath = os.path.join(NOVELS_ORIGINAL_FOLDER, saved_filename)
+            if os.path.exists(original_filepath):
+                os.remove(original_filepath)
+                app.logger.info(f"Deleted original file: {original_filepath}")
+        
+        # 2. 캐릭터 분석 파일 삭제
+        character_analysis_file = file_metadata.get('character_analysis_file')
+        if character_analysis_file:
+            character_filepath = os.path.join(CHARACTER_ANALYSIS_FOLDER, character_analysis_file)
+            if os.path.exists(character_filepath):
+                os.remove(character_filepath)
+                app.logger.info(f"Deleted character analysis file: {character_filepath}")
+        
+        # 3. 소설 구조 분석 파일 삭제
+        structure_analysis_file = file_metadata.get('structure_analysis_file')
+        if structure_analysis_file:
+            structure_filepath = os.path.join(NOVELS_PROCESSED_FOLDER, structure_analysis_file)
+            if os.path.exists(structure_filepath):
+                os.remove(structure_filepath)
+                app.logger.info(f"Deleted structure analysis file: {structure_filepath}")
+        
+        # 4. 오디오북 파일 삭제 (audio_output 폴더)
+        audio_output_dir = os.path.join(AUDIO_OUTPUT_FOLDER, file_id)
+        if os.path.exists(audio_output_dir):
+            try:
+                import shutil
+                shutil.rmtree(audio_output_dir)
+                app.logger.info(f"Deleted audiobook directory: {audio_output_dir}")
+            except Exception as e:
+                app.logger.error(f"Error deleting audiobook directory {audio_output_dir}: {str(e)}")
+        
+        # 5. 매칭된 소설 파일 삭제 (novels_matched 폴더 - from matching_service)
+        novels_matched_folder = str(NOVELS_MATCHED_PATH)
+        matched_filename = f"{file_id}_matching.json"
+        matched_filepath = os.path.join(novels_matched_folder, matched_filename)
+        if os.path.exists(matched_filepath):
+            os.remove(matched_filepath)
+            app.logger.info(f"Deleted matched novel file: {matched_filepath}")
+        
+        # 6. 메타데이터에서 항목 제거
+        del metadata[file_id]
+        save_metadata(metadata)
+        app.logger.info(f"Removed metadata for file_id: {file_id}")
+        
+        return jsonify({
+            "message": f"File with id '{file_id}' and related data successfully deleted.",
+            "deleted_file_id": file_id
+        }), 200
+    
+    except Exception as e:
+        app.logger.error(f"Error deleting file {file_id}: {str(e)}")
+        return jsonify({"error": f"Failed to delete file: {str(e)}"}), 500
 
 @app.route('/api/metadata', methods=['GET'])
 def get_all_metadata_route():
@@ -426,6 +449,260 @@ def get_single_metadata_route(file_id):
     if metadata_item:
         return jsonify(metadata_item)
     return jsonify({"error": "Metadata not found for the given ID"}), 404
+
+@app.route('/api/audiobook/generate/<file_id>', methods=['POST'])
+def generate_audiobook_route(file_id):
+    """
+    지정된 file_id의 소설을 오디오북으로 생성하는 엔드포인트.
+    
+    요청 본문: 생성 관련 설정(선택적)
+    - force (bool, optional): 이미 생성된 오디오북이 있을 경우 덮어쓸지 여부
+    """
+    try:
+        # API 키 확인 및 디버깅
+        elevenlabs_key = os.getenv("ELEVENLABS_API_KEY")
+        app.logger.info(f"ELEVENLABS_API_KEY 환경 변수 확인: {'설정됨' if elevenlabs_key else '설정되지 않음'}")
+        app.logger.info(f"ELEVENLABS_API_KEY 길이: {len(elevenlabs_key) if elevenlabs_key else 0}")
+        
+        if not check_api_key():
+            app.logger.error("ELEVENLABS_API_KEY가 환경 변수에 설정되어 있지 않습니다.")
+            return jsonify({"error": "오디오북 생성에 필요한 ElevenLabs API 키가 설정되어 있지 않습니다."}), 400
+        
+        # 파일 ID 유효성 검사
+        metadata = get_metadata()
+        if file_id not in metadata:
+            return jsonify({"error": f"소설 파일 ID '{file_id}'를 찾을 수 없습니다."}), 404
+        
+        # 매칭 결과 로드 (NOVELS_MATCHED_PATH 사용)
+        matching_result_file = os.path.join(str(NOVELS_MATCHED_PATH), f"{file_id}_matching.json")
+        if not os.path.exists(matching_result_file):
+            return jsonify({"error": f"소설 파일 ID '{file_id}'에 대한 등장인물-성우 매칭 결과가 없습니다. 먼저 매칭을 수행해주세요."}), 404
+        
+        # 구조 분석 결과 로드
+        structure_file = os.path.join(NOVELS_PROCESSED_FOLDER, f"{file_id}_structure.json")
+        if not os.path.exists(structure_file):
+            return jsonify({"error": f"소설 파일 ID '{file_id}'에 대한 구조 분석 결과가 없습니다. 먼저 분석을 수행해주세요."}), 404
+        
+        # 매칭 결과 로드
+        try:
+            with open(matching_result_file, 'r', encoding='utf-8') as f:
+                matching_data = json.load(f)
+            app.logger.info(f"매칭 결과 데이터 타입: {type(matching_data)}, 구조: {matching_data.keys() if isinstance(matching_data, dict) else '딕셔너리 아님'}")
+        except Exception as e:
+            app.logger.error(f"Error loading matching result for {file_id}: {str(e)}")
+            return jsonify({"error": f"매칭 결과 파일 로드 중 오류가 발생했습니다: {str(e)}"}), 500
+        
+        # 구조 분석 결과 로드
+        try:
+            with open(structure_file, 'r', encoding='utf-8') as f:
+                structure_data = json.load(f)
+            app.logger.info(f"구조 분석 데이터 타입: {type(structure_data)}, 길이: {len(structure_data) if isinstance(structure_data, (list, dict)) else '배열/딕셔너리 아님'}")
+        except Exception as e:
+            app.logger.error(f"Error loading structure analysis for {file_id}: {str(e)}")
+            return jsonify({"error": f"구조 분석 결과 파일 로드 중 오류가 발생했습니다: {str(e)}"}), 500
+        
+        # 오디오북 생성 데이터 구성
+        character_voice_map = {}
+        story_items = []
+        
+        # 매칭 데이터에서 character_voice_map 추출
+        if isinstance(matching_data, dict) and "character_voice_map" in matching_data:
+            character_voice_map = matching_data["character_voice_map"]
+        elif isinstance(matching_data, dict):
+            # 첫 번째 키가 character_voice_map일 가능성 확인
+            for key, value in matching_data.items():
+                if isinstance(value, dict):
+                    character_voice_map = value
+                    break
+        
+        # 구조 데이터에서 story_items 추출
+        if isinstance(structure_data, list):
+            # 구조 데이터가 리스트인 경우 그대로 사용
+            story_items = structure_data
+        elif isinstance(structure_data, dict) and "segments" in structure_data:
+            # 구조 데이터가 딕셔너리이고 segments 키가 있는 경우
+            story_items = structure_data["segments"]
+        
+        # 데이터 유효성 로깅
+        app.logger.info(f"character_voice_map 항목 수: {len(character_voice_map)}")
+        app.logger.info(f"story_items 항목 수: {len(story_items)}")
+        
+        # 오디오북 생성 데이터 구성
+        story_data = {
+            "character_voice_map": character_voice_map,
+            "story_items": story_items
+        }
+        
+        # 생성 요청 처리
+        force = request.json.get('force', False) if request.is_json else False
+        
+        # 이미 생성된 오디오북 확인
+        output_dir = os.path.join(AUDIO_OUTPUT_FOLDER, file_id)
+        if os.path.exists(output_dir) and not force:
+            # 이미 일부 파일이 생성된 경우, 생성 상태 확인
+            status_result, _ = check_generation_status(file_id)
+            
+            # 생성된 세그먼트가 있고, 완료 또는 진행 중인 경우 알림
+            if status_result.get("generated_segments", 0) > 0:
+                return jsonify({
+                    "message": "이미 오디오북 생성이 진행 중이거나 완료되었습니다. 덮어쓰려면 'force=true' 옵션을 사용하세요.",
+                    "status": status_result.get("status"),
+                    "generated_segments": status_result.get("generated_segments", 0),
+                    "total_segments": status_result.get("total_segments", 0),
+                    "file_id": file_id
+                }), 200
+        
+        # 오디오북 생성 실행
+        result, status_code = generate_complete_audiobook(file_id, story_data)
+        
+        if status_code != 200:
+            # API 키 관련 오류 확인
+            if 'API key' in str(result.get('error', '')):
+                app.logger.error(f"ElevenLabs API 키 오류: {result.get('error')}")
+                return jsonify({"error": "ElevenLabs API 키가 유효하지 않거나 설정되지 않았습니다. 관리자에게 문의하세요."}), 400
+            return jsonify(result), status_code
+        
+        return jsonify({
+            "message": "오디오북 생성이 완료되었습니다.",
+            "generation_results": result
+        }), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error generating audiobook for {file_id}: {str(e)}")
+        return jsonify({"error": f"오디오북 생성 중 오류가 발생했습니다: {str(e)}"}), 500
+
+@app.route('/api/audiobook/status/<file_id>', methods=['GET'])
+def check_audiobook_status_route(file_id):
+    """
+    지정된 file_id의 오디오북 생성 상태를 확인하는 엔드포인트.
+    """
+    try:
+        # 파일 ID 유효성 검사
+        metadata = get_metadata()
+        if file_id not in metadata:
+            return jsonify({
+                "file_id": file_id,
+                "status": "error",
+                "message": f"소설 파일 ID '{file_id}'를 찾을 수 없습니다.",
+                "total_segments": 0,
+                "generated_segments": 0,
+                "audio_files": [],
+                "segment_texts": {}
+            }), 404
+        
+        # 생성 상태 확인
+        status_result, status_code = check_generation_status(file_id)
+        
+        if status_code != 200:
+            # 오류 상태라도 일관된 형식으로 응답 반환
+            return jsonify({
+                "file_id": file_id,
+                "status": "error",
+                "message": status_result.get("error", "오디오북 상태 확인 중 오류가 발생했습니다."),
+                "total_segments": 0,
+                "generated_segments": 0,
+                "audio_files": [],
+                "segment_texts": {}
+            }), 200  # 오류 상태도 200으로 처리하여 프론트엔드에서 일관되게 처리
+        
+        # novels_matched 폴더에서 매칭된 데이터 로드하여 세그먼트 텍스트 추가
+        segment_texts = {}
+        matched_file = os.path.join(NOVELS_MATCHED_PATH, f"{file_id}_matching.json")
+        
+        if os.path.exists(matched_file):
+            try:
+                with open(matched_file, 'r', encoding='utf-8') as f:
+                    matched_data = json.load(f)
+                
+                # 구조 분석된 스토리 아이템 찾기
+                story_items = []
+                if isinstance(matched_data, dict) and "story_items" in matched_data:
+                    story_items = matched_data["story_items"]
+                elif isinstance(matched_data, dict) and "segments" in matched_data:
+                    story_items = matched_data["segments"]
+                
+                # 오디오 파일명과 텍스트 매핑
+                for item in story_items:
+                    if "order" in item and "text" in item:
+                        filename = f"{int(item['order']):03d}.mp3"
+                        segment_texts[filename] = item.get("text", "")
+                        
+                        # 화자 정보 추가 (있는 경우)
+                        if "speaker" in item:
+                            segment_texts[filename] = f"{item['speaker']}: {segment_texts[filename]}"
+            except Exception as e:
+                app.logger.error(f"Error loading matched data for {file_id}: {str(e)}")
+                # 오류 발생해도 계속 진행 (텍스트 정보는 선택적)
+        
+        # 기존 status_result에 segment_texts 추가해서 반환
+        status_result["segment_texts"] = segment_texts
+        
+        return jsonify(status_result), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error checking audiobook status for {file_id}: {str(e)}")
+        return jsonify({
+            "file_id": file_id,
+            "status": "error",
+            "message": f"오디오북 상태 확인 중 오류가 발생했습니다: {str(e)}",
+            "total_segments": 0,
+            "generated_segments": 0,
+            "audio_files": [],
+            "segment_texts": {}
+        }), 200  # 오류 상태도 200으로 처리
+
+@app.route('/api/audiobook/files/<file_id>/<segment_id>', methods=['GET'])
+def get_audiobook_file_route(file_id, segment_id):
+    """
+    지정된 file_id와 segment_id에 해당하는 오디오 파일을 제공하는 엔드포인트.
+    """
+    try:
+        # 파일 ID 유효성 검사
+        metadata = get_metadata()
+        if file_id not in metadata:
+            return jsonify({"error": f"소설 파일 ID '{file_id}'를 찾을 수 없습니다."}), 404
+        
+        # 오디오 파일 디렉토리 확인
+        output_dir = os.path.join(AUDIO_OUTPUT_FOLDER, file_id)
+        if not os.path.exists(output_dir):
+            return jsonify({"error": f"소설 파일 ID '{file_id}'에 대한 오디오북이 생성되지 않았습니다."}), 404
+        
+        # 세그먼트 ID를 정수로 변환 및 파일명 생성
+        try:
+            segment_number = int(segment_id)
+            audio_filename = f"{segment_number:03d}.mp3"
+        except ValueError:
+            return jsonify({"error": f"유효하지 않은 세그먼트 ID입니다. 세그먼트 ID는 숫자여야 합니다."}), 400
+        
+        # 파일 존재 확인
+        audio_file_path = os.path.join(output_dir, audio_filename)
+        if not os.path.exists(audio_file_path):
+            return jsonify({"error": f"요청한 오디오 파일을 찾을 수 없습니다."}), 404
+        
+        # 파일 전송
+        return send_from_directory(output_dir, audio_filename, as_attachment=False)
+        
+    except Exception as e:
+        app.logger.error(f"Error serving audiobook file for {file_id}, segment {segment_id}: {str(e)}")
+        return jsonify({"error": f"오디오 파일 제공 중 오류가 발생했습니다: {str(e)}"}), 500
+
+@app.route('/api/elevenlabs/voices', methods=['GET'])
+def get_elevenlabs_voices_route():
+    """
+    ElevenLabs에서 사용 가능한 음성 목록을 가져오는 엔드포인트.
+    """
+    try:
+        # 음성 목록 가져오기
+        voices_result, status_code = get_available_voices()
+        
+        if status_code != 200:
+            return jsonify(voices_result), status_code
+        
+        return jsonify(voices_result), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error getting ElevenLabs voices: {str(e)}")
+        return jsonify({"error": f"ElevenLabs 음성 목록 가져오기 중 오류가 발생했습니다: {str(e)}"}), 500
 
 if __name__ == '__main__':
     # 포트를 8000으로 변경
